@@ -56,7 +56,7 @@ Returns the 2 updated user objects.
 
 -   **URL**
 
-    /user/transfer
+    /users/transfer
 
 -   **Method:**
 
