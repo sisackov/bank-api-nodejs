@@ -5,6 +5,38 @@ const validator = require('validator');
 const v_to_sha256 = require('v_to_sha256');
 const JSON_FILE_PATH = 'user.json';
 
+const logMessage = (message, style) => {
+    if (style === 'error') {
+        console.log(chalk.red(message));
+    } else if (style === 'success') {
+        console.log(chalk.inverse.green(message));
+    } else {
+        console.log(chalk.blue(message));
+    }
+};
+
+const showUser = (id) => {
+    const users = loadData();
+    const userToShow = users.find((user) => user.id === id);
+    if (!userToShow) {
+        logMessage('User not found', 'error');
+        return { error: 'User not found' };
+    }
+
+    logMessage('User: ' + userToShow, 'success');
+    return { data: userToShow };
+};
+
+const showAllUsers = () => {
+    const users = loadData();
+    if (users.length === 0) {
+        logMessage('No users found', 'error');
+        return { error: 'No users found' };
+    }
+    logMessage('User: ' + userToShow, 'success');
+    return { data: users };
+};
+
 const createUser = async (name, cash, credit) => {
     const user = {
         id: uniqid(),
@@ -15,45 +47,26 @@ const createUser = async (name, cash, credit) => {
 
     const users = loadData();
     if (users.find((userObj) => userObj.userName === name)) {
-        console.log(chalk.red('User already exists'));
+        logMessage('User already exists', 'error');
         return { error: 'User with this name already exists' };
     }
     users.push(user);
     saveData(users);
-    console.log(chalk.magenta('User created with ID: ' + user.id));
+    logMessage('User created with ID: ' + user.id, 'success');
     return { data: user };
 };
 
-const showUser = (id) => {
-    const users = loadData();
-    const userToShow = users.find((user) => user.id === id);
-    if (!userToShow) {
-        console.log(chalk.red('User not found'));
-        return { error: 'User not found' };
-    }
-
-    console.log(chalk.inverse.green('User: ' + userToShow));
-    return { data: userToShow };
-};
-
-const updateUser = (id, name, cash, credit) => {
+const updateUser = (id, cash, credit) => {
     const users = loadData();
     const userToUpdate = users.find((user) => user.id === id);
     if (!userToUpdate) {
-        console.log(chalk.red('User not found'));
+        logMessage('User not found', 'error');
         return { error: 'User not found' };
     } else {
-        if (name) {
-            userToUpdate.userName = name;
-        }
-        if (cash) {
-            userToUpdate.cash = cash;
-        }
-        if (credit) {
-            userToUpdate.credit = credit;
-        }
+        userToUpdate.cash += cash || 0;
+        userToUpdate.credit += credit || 0;
         saveData(users);
-        console.log(chalk.inverse.green('User updated', userToUpdate));
+        logMessage('User updated' + userToUpdate, 'success');
         return { data: userToUpdate };
     }
 };
@@ -62,11 +75,11 @@ const deleteUser = (id) => {
     const users = loadData();
     const filteredUsers = users.filter((user) => user.id !== id);
     if (users.length === filteredUsers.length) {
-        console.log(chalk.red('User not found'));
+        logMessage('User not found', 'error');
         return { error: 'User not found' };
     } else {
         saveData(filteredUsers);
-        console.log(chalk.inverse.green('User deleted'));
+        logMessage('User deleted', 'success');
         return { data: `User with id ${id} was deleted` };
     }
 };
@@ -86,4 +99,11 @@ const saveData = (data) => {
     fs.writeFileSync(JSON_FILE_PATH, dataJSON);
 };
 
-module.exports = { createUser, showUser, updateUser, deleteUser, setPassword };
+module.exports = {
+    createUser,
+    showUser,
+    showAllUsers,
+    updateUser,
+    deleteUser,
+    setPassword,
+};

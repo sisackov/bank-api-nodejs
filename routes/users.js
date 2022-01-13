@@ -1,50 +1,38 @@
 const express = require('express');
-const { deleteUser } = require('./utils');
+const { deleteUser, createUser } = require('./utils');
 const router = express.Router();
 
 router.use(logger);
 router.use(express.json());
 
-const sendUser = (res) => {
-    res.send(nums.join(', '));
-};
-
 router.get('/', (req, res) => {
-    sendNums(res);
+    const { error, data } = showAllUsers();
 });
 
 router.post('/', (req, res) => {
-    const newNum = req.body.number;
-    if (!newNum) {
-        res.status(400).send('Missing number');
-    } else if (nums.includes(newNum)) {
-        res.status(400).send('Number already exists');
-    } else {
-        nums.push(req.body.number);
-        res.status(201);
-        sendNums(res);
+    if (!req.body.name) {
+        return res.status(400).send('Name is required');
     }
+    const { name, cash, credit } = req.body;
+    const { error, data } = createUser(name, cash, credit);
+    if (error) {
+        return res.status(400).send(error);
+    }
+    res.send(data);
 });
 
-router.put('/:oldNum', (req, res) => {
-    const oldNum = +req.params.oldNum; // + converts string to number
-    const newNum = req.body.number;
-    if (!newNum) {
-        res.status(400).send('Missing new number');
-    } else if (!oldNum) {
-        res.status(400).send('Missing old number');
-    } else if (!nums.includes(oldNum)) {
-        res.status(404).send('Number not found');
-    } else {
-        const index = nums.indexOf(oldNum);
-        nums[index] = newNum;
-        res.status(200);
-        sendNums(res);
+router.put('/:id', (req, res) => {
+    const userId = +req.params.id; // + converts string to number
+    const { cash, credit } = req.body;
+    const { error, data } = updateUser(userId, cash, credit);
+    if (error) {
+        return res.status(400).send(error);
     }
+    res.send(data);
 });
 
 router.delete('/:id', (req, res) => {
-    const id = +req.params.number; //turning the string into a number
+    const id = +req.params.id; //turning the string into a number
     if (!id) {
         return res.status(400).send('Missing user id');
     }
