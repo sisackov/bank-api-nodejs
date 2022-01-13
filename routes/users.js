@@ -1,12 +1,11 @@
 const express = require('express');
+const { deleteUser } = require('./utils');
 const router = express.Router();
 
 router.use(logger);
 router.use(express.json());
 
-const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-const sendNums = (res) => {
+const sendUser = (res) => {
     res.send(nums.join(', '));
 };
 
@@ -44,18 +43,17 @@ router.put('/:oldNum', (req, res) => {
     }
 });
 
-router.delete('/:number', (req, res) => {
-    const num = +req.params.number; //turning the string into a number
-    const indexOfNum = nums.indexOf(num);
-    if (!num) {
-        res.status(400).send('Missing number');
-    } else if (indexOfNum === -1) {
-        res.status(400).send('Number does not exist');
-    } else {
-        nums.splice(indexOfNum, 1);
-        res.status(200);
-        sendNums(res);
+router.delete('/:id', (req, res) => {
+    const id = +req.params.number; //turning the string into a number
+    if (!id) {
+        return res.status(400).send('Missing user id');
     }
+
+    const { error, data } = deleteUser(id);
+    if (error) {
+        return res.status(400).send(error);
+    }
+    res.send(data);
 });
 
 function logger(req, res, next) {
