@@ -1,15 +1,20 @@
 const fs = require('fs');
 const chalk = require('chalk');
 const uniqid = require('uniqid');
-const JSON_FILE_PATH = 'user.json';
+const JSON_FILE_PATH = './routes/user.json';
 
-const logMessage = (message, style) => {
-    if (style === 'error') {
-        console.log(chalk.red(message));
-    } else if (style === 'success') {
-        console.log(chalk.inverse.green(message));
-    } else {
-        console.log(chalk.blue(message));
+const logMessage = (style, message, object) => {
+    const obj = object ? JSON.stringify(object) : '';
+    switch (style) {
+        case 'success':
+            console.log(chalk.inverse.green(message, obj));
+            break;
+        case 'error':
+            console.log(chalk.inverse.red(message, obj));
+            break;
+        default:
+            console.log(chalk.blue(message, obj));
+            break;
     }
 };
 
@@ -17,25 +22,25 @@ const showUser = (id) => {
     const users = loadData();
     const userToShow = users.find((user) => user.id === id);
     if (!userToShow) {
-        logMessage('User not found', 'error');
+        logMessage('error', 'User not found');
         return { error: 'User not found' };
     }
 
-    logMessage('User: ' + userToShow, 'success');
+    logMessage('success', 'Got user: ', userToShow);
     return { data: userToShow };
 };
 
 const showAllUsers = () => {
     const users = loadData();
     if (users.length === 0) {
-        logMessage('No users found', 'error');
+        logMessage('error', 'No users found');
         return { error: 'No users found' };
     }
-    logMessage('User: ' + userToShow, 'success');
+    logMessage('success', 'Users sent ', users);
     return { data: users };
 };
 
-const createUser = async (name, cash, credit) => {
+const createUser = (name, cash, credit) => {
     const user = {
         id: uniqid(),
         userName: name,
@@ -45,12 +50,12 @@ const createUser = async (name, cash, credit) => {
 
     const users = loadData();
     if (users.find((userObj) => userObj.userName === name)) {
-        logMessage('User already exists', 'error');
+        logMessage('error', 'User already exists');
         return { error: 'User with this name already exists' };
     }
     users.push(user);
     saveData(users);
-    logMessage('User created with ID: ' + user.id, 'success');
+    logMessage('success', 'User created with ID: ', user.id);
     return { data: user };
 };
 
@@ -58,13 +63,13 @@ const updateUser = (id, cash, credit) => {
     const users = loadData();
     const userToUpdate = users.find((user) => user.id === id);
     if (!userToUpdate) {
-        logMessage('User not found', 'error');
+        logMessage('error', 'User not found');
         return { error: 'User not found' };
     } else {
         userToUpdate.cash += cash;
         userToUpdate.credit += credit;
         saveData(users);
-        logMessage('User updated' + userToUpdate, 'success');
+        logMessage('success', 'User updated', userToUpdate);
         return { data: userToUpdate };
     }
 };
