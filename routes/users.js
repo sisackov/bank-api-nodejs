@@ -1,12 +1,20 @@
 const express = require('express');
-const { deleteUser, createUser } = require('./utils');
+const { deleteUser, createUser, updateUser } = require('./utils');
 const router = express.Router();
 
 router.use(logger);
 router.use(express.json());
 
+const sendHandler = (res, error, data) => {
+    if (error) {
+        return res.status(400).send({ error });
+    }
+    res.send({ data });
+};
+
 router.get('/', (req, res) => {
     const { error, data } = showAllUsers();
+    sendHandler(res, error, data);
 });
 
 router.post('/', (req, res) => {
@@ -15,34 +23,55 @@ router.post('/', (req, res) => {
     }
     const { name, cash, credit } = req.body;
     const { error, data } = createUser(name, cash, credit);
-    if (error) {
-        return res.status(400).send(error);
-    }
-    res.send(data);
+    sendHandler(res, error, data);
 });
 
-router.put('/:id', (req, res) => {
+// router.put('/:id', (req, res) => {
+//     const userId = +req.params.id; // + converts string to number
+//     const { cash, credit } = req.body;
+//     const { error, data } = updateUser(userId, cash, credit);
+//     sendHandler(res, error, data);
+// });
+
+router.put('/deposit/:id', (req, res) => {
     const userId = +req.params.id; // + converts string to number
-    const { cash, credit } = req.body;
-    const { error, data } = updateUser(userId, cash, credit);
-    if (error) {
-        return res.status(400).send(error);
-    }
-    res.send(data);
+    const { amount } = req.body;
+    const { error, data } = updateUser(userId, amount, 0);
+    sendHandler(res, error, data);
 });
 
-router.delete('/:id', (req, res) => {
-    const id = +req.params.id; //turning the string into a number
-    if (!id) {
-        return res.status(400).send('Missing user id');
-    }
-
-    const { error, data } = deleteUser(id);
-    if (error) {
-        return res.status(400).send(error);
-    }
-    res.send(data);
+router.put('/withdraw/:id', (req, res) => {
+    const userId = +req.params.id; // + converts string to number
+    const { amount } = req.body;
+    const { error, data } = updateUser(userId, -1 * amount, 0);
+    sendHandler(res, error, data);
 });
+
+router.put('/credit/:id', (req, res) => {
+    const userId = +req.params.id; // + converts string to number
+    const { amount } = req.body;
+    const { error, data } = updateUser(userId, 0, amount);
+    sendHandler(res, error, data);
+});
+
+router.put('/transfer', (req, res) => {
+    const { idSource, amount, idTarget } = req.body;
+    const { error, data } = transferCash(idSource, amount, idTarget);
+    sendHandler(res, error, data);
+});
+
+router
+    .route('/:id')
+    .get((req, res) => {
+        const userId = +req.params.id; // + converts string to number
+        const { error, data } = showUser(userId);
+        sendHandler(res, error, data);
+    })
+    .delete((req, res) => {
+        const userId = +req.params.id; // + converts string to number
+        const { error, data } = deleteUser(userId);
+        sendHandler(res, error, data);
+    });
 
 function logger(req, res, next) {
     console.log(req.originalUrl);
