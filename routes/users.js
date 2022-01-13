@@ -26,13 +26,6 @@ router.post('/', (req, res) => {
     sendHandler(res, error, data);
 });
 
-// router.put('/:id', (req, res) => {
-//     const userId = +req.params.id; // + converts string to number
-//     const { cash, credit } = req.body;
-//     const { error, data } = updateUser(userId, cash, credit);
-//     sendHandler(res, error, data);
-// });
-
 router.put('/deposit/:id', (req, res) => {
     const userId = +req.params.id; // + converts string to number
     const { amount } = req.body;
@@ -55,8 +48,8 @@ router.put('/credit/:id', (req, res) => {
 });
 
 router.put('/transfer', (req, res) => {
-    const { idSource, amount, idTarget } = req.body;
-    const { error, data } = transferCash(idSource, amount, idTarget);
+    const { fromId, toId, amount } = req.body;
+    const { error, data } = transferCash(fromId, toId, amount);
     sendHandler(res, error, data);
 });
 

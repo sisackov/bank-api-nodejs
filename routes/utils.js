@@ -1,8 +1,6 @@
 const fs = require('fs');
 const chalk = require('chalk');
 const uniqid = require('uniqid');
-const validator = require('validator');
-const v_to_sha256 = require('v_to_sha256');
 const JSON_FILE_PATH = 'user.json';
 
 const logMessage = (message, style) => {
@@ -63,8 +61,8 @@ const updateUser = (id, cash, credit) => {
         logMessage('User not found', 'error');
         return { error: 'User not found' };
     } else {
-        userToUpdate.cash += cash || 0;
-        userToUpdate.credit += credit || 0;
+        userToUpdate.cash += cash;
+        userToUpdate.credit += credit;
         saveData(users);
         logMessage('User updated' + userToUpdate, 'success');
         return { data: userToUpdate };
@@ -84,6 +82,36 @@ const deleteUser = (id) => {
     }
 };
 
+const transferCash = (fromId, toId, amount) => {
+    if (fromId === toId) {
+        logMessage('Can not transfer money to same user', 'error');
+        return { error: 'Can not transfer money to same user' };
+    }
+    if (!fromId || !toId || !amount) {
+        logMessage('You must provide all parameters for transfer', 'error');
+        return { error: 'You must provide all parameters for transfer' };
+    }
+    const users = loadData();
+    const fromUser = users.find((user) => user.id === fromId);
+    const toUser = users.find((user) => user.id === toId);
+    if (fromUser.cash < amount) {
+        if (fromUser.credit + fromUser.cash < amount) {
+            logMessage('not enough money to transfer', 'error');
+            return {
+                error: 'User does not have enough money and credit to transfer',
+            };
+        }
+        fromUser.credit -= amount - fromUser.cash;
+        fromUser.cash = 0;
+    } else {
+        fromUser.cash -= amount;
+    }
+    toUser.cash += amount;
+    saveData(users);
+    logMessage('Money transferred', 'success');
+    return { data: { fromId: fromUser, toId: toUser } };
+};
+
 const loadData = () => {
     try {
         const dataBuffer = fs.readFileSync(JSON_FILE_PATH);
@@ -100,10 +128,10 @@ const saveData = (data) => {
 };
 
 module.exports = {
-    createUser,
     showUser,
     showAllUsers,
+    createUser,
     updateUser,
     deleteUser,
-    setPassword,
+    transferCash,
 };
