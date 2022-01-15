@@ -6,6 +6,7 @@ const {
     showAllUsers,
     transferCash,
     showUser,
+    showFilteredUsers,
 } = require('./utils');
 const router = express.Router();
 
@@ -16,11 +17,17 @@ const sendHandler = (res, error, data) => {
     if (error) {
         return res.status(400).send({ error });
     }
+    console.log('data', data);
     res.send({ data });
 };
 
 router.get('/', (req, res) => {
-    const { error, data } = showAllUsers();
+    let error, data;
+    if (req.query) {
+        ({ error, data } = showFilteredUsers(req.query));
+        return sendHandler(res, error, data);
+    }
+    ({ error, data } = showAllUsers());
     sendHandler(res, error, data);
 });
 

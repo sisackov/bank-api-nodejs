@@ -40,6 +40,27 @@ const showAllUsers = () => {
     return { data: users };
 };
 
+const showFilteredUsers = (query) => {
+    const users = loadData();
+    const { aboveCash, belowCash, aboveCredit, belowCredit } = query;
+    let filteredUsers = [];
+    if (aboveCash) {
+        filteredUsers = users.filter((user) => user.cash > aboveCash);
+    } else if (belowCash) {
+        filteredUsers = users.filter((user) => user.cash < belowCash);
+    } else if (aboveCredit) {
+        filteredUsers = users.filter((user) => user.credit > aboveCredit);
+    } else if (belowCredit) {
+        filteredUsers = users.filter((user) => user.credit < belowCredit);
+    } else {
+        logMessage('error', 'no query provided');
+        return { error: 'You must provide at least one parameter for filter' };
+    }
+
+    logMessage('success', 'Users filtered ', filteredUsers);
+    return { data: filteredUsers };
+};
+
 const createUser = (name, cash, credit) => {
     const user = {
         id: uniqid(),
@@ -78,11 +99,11 @@ const deleteUser = (id) => {
     const users = loadData();
     const filteredUsers = users.filter((user) => user.id !== id);
     if (users.length === filteredUsers.length) {
-        logMessage('User not found', 'error');
+        logMessage('error', 'User not found');
         return { error: 'User not found' };
     } else {
         saveData(filteredUsers);
-        logMessage('User deleted', 'success');
+        logMessage('success', 'User deleted');
         return { data: `User with id ${id} was deleted` };
     }
 };
@@ -93,7 +114,7 @@ const transferCash = (fromId, toId, amount) => {
         return { error: 'Can not transfer money to same user' };
     }
     if (!fromId || !toId || !amount) {
-        logMessage('You must provide all parameters for transfer', 'error');
+        logMessage('error', 'You must provide all parameters for transfer');
         return { error: 'You must provide all parameters for transfer' };
     }
     const users = loadData();
@@ -101,7 +122,7 @@ const transferCash = (fromId, toId, amount) => {
     const toUser = users.find((user) => user.id === toId);
     if (fromUser.cash < amount) {
         if (fromUser.credit + fromUser.cash < amount) {
-            logMessage('not enough money to transfer', 'error');
+            logMessage('error', 'not enough money to transfer');
             return {
                 error: 'User does not have enough money and credit to transfer',
             };
@@ -135,6 +156,7 @@ const saveData = (data) => {
 module.exports = {
     showUser,
     showAllUsers,
+    showFilteredUsers,
     createUser,
     updateUser,
     deleteUser,
