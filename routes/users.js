@@ -17,7 +17,7 @@ const sendHandler = (res, error, data) => {
     if (error) {
         return res.status(400).send({ error });
     }
-    console.log('data', data);
+    // console.log('data', data);
     res.send({ data });
 };
 
